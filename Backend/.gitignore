@@ -25,6 +25,11 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+venv/
+ENV/
+.env/
+android/
+package.json/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -227,3 +232,23 @@ checkpoints/
 
 # uv lock file (uncomment if you don't want to track it)
 # uv.lock
+
+# Test files (don't commit test files)
+test_*.py
+*_test.py
+tests/
+
+# Large data files that shouldn't be in repo
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+
+# Alpha Vantage and API response cache
+cache/
+*.cache
+
+# Development and debugging files
+debug.py
+scratch.py
+playground.py

@@ -1,0 +1,91 @@
+# Root level gitignore for WealthLens project
+
+# Node modules (root level - not needed)
+node_modules/
+package-lock.json
+
+# Environment files (CRITICAL - Contains API Keys)
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# Database files (Large and regeneratable)
+db/
+*.db
+*.sqlite
+*.sqlite3
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Test files
+test_*.py
+test_*.js
+*_test.*
+tests/
+
+# Cache directories
+.cache/
+cache/
+
+# Build outputs
+build/
+dist/
+out/
+
+# Development files
+scratch.*
+playground.*
+debug.*
+*.local
+
+# Large files that shouldn't be in repo
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+*.zip
+*.rar
+*.7z
+
+# Python specific (backup for Backend)
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Node.js specific (backup for Frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
