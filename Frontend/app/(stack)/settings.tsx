@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, TouchableOpacity, TextInput, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +7,7 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { SettingsHeader } from '@/components/SettingsHeader';
-import { Moon, Sun, CreditCard, DollarSign, Plus, MoreVertical } from 'lucide-react-native';
+import { Moon, Sun, CreditCard, DollarSign, Plus, MoreVertical, Camera } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const { colors, theme, toggleTheme } = useTheme();

@@ -68,6 +68,7 @@ export function Button({
       {
         fontSize: responsiveFontSize,
         lineHeight: responsiveFontSize * 1.2,
+        fontFamily: 'Sora_600SemiBold',
       }
     ];
 

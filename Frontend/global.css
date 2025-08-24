@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* NativeWind font mapping classes for React Native */
+.text-display { font-family: 'Sora_600SemiBold'; }
+.text-body { font-family: 'Sora_400Regular'; }
