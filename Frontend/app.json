@@ -4,9 +4,14 @@
     "slug": "wealthlens",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/wealthlens.png",
     "scheme": "wealthlens",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/wealthlens.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "newArchEnabled": true,
     "platforms": ["ios", "android", "web"],
     "ios": {
@@ -15,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/wealthlens.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.wealthlens.app",
@@ -29,7 +34,7 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/wealthlens.png"
     },
     "plugins": [
       "expo-router",

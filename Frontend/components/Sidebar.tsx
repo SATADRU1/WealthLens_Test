@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Image } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive, getResponsiveFontSize, getResponsivePadding } from '@/hooks/useResponsive';
@@ -76,7 +76,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       id: 'ai-chat',
       title: 'AI Finance Tool',
       icon: Bot,
-      route: '/(stack)/ai-finance',
+      route: '/(stack)/chatbot',
       color: colors.accent,
     },
     {
@@ -157,9 +157,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <View style={styles.logoContainer}>
-            <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
-              <Text style={styles.logoText}>📊</Text>
-            </View>
+            {/* Replaced emoji logo with image */}
+            <Image source={require('../assets/images/wealthlens.png')} style={{ width: 32, height: 32, marginRight: 12 }} resizeMode="contain" />
             <Text style={[styles.logoTitle, { color: colors.text }]}>WealthLens</Text>
           </View>
           <TouchableOpacity onPress={onToggle} style={styles.closeButton}>
