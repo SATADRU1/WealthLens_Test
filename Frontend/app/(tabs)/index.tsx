@@ -108,7 +108,7 @@ export default function DashboardScreen() {
                 <Text style={[styles.errorText, { color: colors.error }]}>!</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={refreshData} disabled={isLoading}>
+            <TouchableOpacity onPress={refreshData} disabled={isLoading} style={styles.iconButton}>
               <RefreshCw
                 size={20}
                 color={isLoading ? colors.textSecondary : colors.primary}
@@ -344,6 +344,28 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 100, // Extra space for tab bar
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 59, 48, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  errorText: {
+    fontWeight: 'bold',
+  },
+  iconButton: {
+    padding: 8,
+  },
+  statusIcon: {
+    marginLeft: 12,
   },
   portfolioCard: {
     padding: 20,

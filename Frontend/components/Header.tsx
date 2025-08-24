@@ -22,20 +22,24 @@ import {
   LogOut,
   Bell,
   HelpCircle,
-  DollarSign
+  DollarSign,
+  Menu as MenuIcon
 } from 'lucide-react-native';
+import { Sidebar } from './Sidebar';
 
 interface HeaderProps {
   title: string;
   showProfile?: boolean;
+  rightComponent?: React.ReactNode;
 }
 
-export function Header({ title, showProfile = true }: HeaderProps) {
+export function Header({ title, showProfile = true, rightComponent }: HeaderProps) {
   const { colors, isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { isTablet, isDesktop } = useResponsive();
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -53,6 +57,10 @@ export function Header({ title, showProfile = true }: HeaderProps) {
         }
       ]
     );
+  };
+
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
   };
 
   const menuItems = [
@@ -130,26 +138,42 @@ export function Header({ title, showProfile = true }: HeaderProps) {
       />
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>{title}</Text>
-            {user?.fullName && (
-              <Text style={styles.subtitle}>
-                Welcome back, {user.fullName}
-              </Text>
-            )}
-          </View>
-          
-          {showProfile && (
+          <View style={styles.leftContainer}>
             <TouchableOpacity
-              style={styles.profileButton}
-              onPress={() => setShowProfileMenu(true)}
+              style={styles.menuButton}
+              onPress={toggleSidebar}
               activeOpacity={0.7}
             >
-              <MoreVertical size={24} color={colors.text} />
+              <MenuIcon size={24} color={colors.text} />
             </TouchableOpacity>
-          )}
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>{title}</Text>
+              {user?.fullName && (
+                <Text style={styles.subtitle}>
+                  Welcome back, {user.fullName}
+                </Text>
+              )}
+            </View>
+          </View>
+          
+          <View style={styles.rightContainer}>
+            {rightComponent}
+            
+            {showProfile && (
+              <TouchableOpacity
+                style={styles.profileButton}
+                onPress={() => setShowProfileMenu(true)}
+                activeOpacity={0.7}
+              >
+                <MoreVertical size={24} color={colors.text} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
+
+      {/* Sidebar */}
+      <Sidebar isOpen={showSidebar} onToggle={toggleSidebar} />
 
       {/* Profile Menu Modal */}
       <Modal
@@ -226,6 +250,21 @@ const createStyles = (colors: any, isTablet: boolean, isDesktop: boolean) => Sty
     paddingVertical: isTablet ? 20 : 16,
     minHeight: isTablet ? 80 : 60,
   },
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: colors.background,
+    marginRight: 12,
+  },
   titleContainer: {
     flex: 1,
   },
@@ -243,6 +282,7 @@ const createStyles = (colors: any, isTablet: boolean, isDesktop: boolean) => Sty
     padding: 8,
     borderRadius: 8,
     backgroundColor: colors.background,
+    marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,
