@@ -9,7 +9,8 @@ import {
   TrendingUp,
   CreditCard,
   PieChart,
-  Target
+  Target,
+  BookOpen
 } from 'lucide-react-native';
 
 export default function TabLayout() {
@@ -88,6 +89,15 @@ export default function TabLayout() {
             title: '',
             tabBarIcon: ({ color, size, focused }) => (
               <Target size={focused ? 28 : 24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="learning-hub"
+          options={{
+            title: '',
+            tabBarIcon: ({ color, size, focused }) => (
+              <BookOpen size={focused ? 28 : 24} color={color} />
             ),
           }}
         />
