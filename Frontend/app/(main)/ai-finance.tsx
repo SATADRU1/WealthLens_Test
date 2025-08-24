@@ -50,7 +50,7 @@ export default function AIFinanceScreen() {
   const suggestedQuestions = [
     {
       icon: TrendingUp,
-      text: "What are the benefits of a Roth IRA?",
+      text: "Hii",
       color: colors.primary,
     },
     {
@@ -314,7 +314,7 @@ export default function AIFinanceScreen() {
               style={[styles.textInput, { color: colors.text }]}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="e.g., What are the benefits of a Roth IRA?"
+              placeholder="I'm your SmartAssistant of your Wealth , Feel free to ask any type of queries..."
               placeholderTextColor={colors.textSecondary}
               multiline
               maxLength={500}
