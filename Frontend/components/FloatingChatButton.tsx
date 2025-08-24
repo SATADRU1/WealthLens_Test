@@ -137,7 +137,7 @@ export function FloatingChatButton({ style }: FloatingChatButtonProps) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 100 : 80,
+    bottom: Platform.OS === 'ios' ? 40 : 30,
     right: 20,
     zIndex: 1000,
   },
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
     paddingRight: 20,
-    paddingBottom: Platform.OS === 'ios' ? 180 : 160,
+    paddingBottom: Platform.OS === 'ios' ? 120 : 100,
   },
   tooltip: {
     paddingHorizontal: 16,

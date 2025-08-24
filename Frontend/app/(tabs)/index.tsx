@@ -97,7 +97,7 @@ export default function DashboardScreen() {
     <View style={[styles.container, {
       backgroundColor: colors.background,
       paddingTop: insets.top,
-      paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom + 70, // Account for tab bar
+      paddingBottom: insets.bottom,
     }]}>
       <Header
         title="My Dashboard"
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 100, // Extra space for tab bar
+    paddingBottom: 24, // Reduced padding since we removed the tab bar
   },
   headerRight: {
     flexDirection: 'row',
