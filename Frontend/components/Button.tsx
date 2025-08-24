@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, Animated } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive, getResponsiveFontSize, getResponsivePadding } from '@/hooks/useResponsive';
 
@@ -80,14 +80,28 @@ export function Button({
     }
   };
 
+  const scale = new Animated.Value(1);
+
+  const handlePressIn = () => {
+    Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 20, bounciness: 6 }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }).start(() => onPress());
+  };
+
   return (
-    <TouchableOpacity
-      style={[getButtonStyle(), style, disabled && { opacity: 0.6 }]}
-      onPress={onPress}
-      disabled={disabled}
-    >
-      {children ? children : <Text style={[getTextStyle(), textStyle]}>{title}</Text>}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        style={[getButtonStyle(), style, disabled && { opacity: 0.6 }]}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.8}
+        disabled={disabled}
+      >
+        {children ? children : <Text style={[getTextStyle(), textStyle]}>{title}</Text>}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 

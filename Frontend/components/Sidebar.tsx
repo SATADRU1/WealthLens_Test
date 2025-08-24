@@ -313,6 +313,7 @@ const styles = StyleSheet.create({
   logoTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'Sora_700Bold',
   },
   closeButton: {
     padding: 4,
@@ -341,6 +342,7 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 16,
     flex: 1,
+    fontFamily: 'Sora_400Regular',
   },
   moreSection: {
     borderTopWidth: 1,

@@ -179,13 +179,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
+    fontFamily: 'Sora_600SemiBold',
   },
   statusSubtitle: {
     fontSize: 12,
+    fontFamily: 'Sora_400Regular',
   },
   errorText: {
     fontSize: 12,
     marginTop: 2,
+    fontFamily: 'Sora_400Regular',
   },
   actions: {
     flexDirection: 'row',

@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 40,
     lineHeight: 36,
+    fontFamily: 'Sora_700Bold',
   },
   tiersContainer: {
     gap: 20,
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    fontFamily: 'Sora_700Bold',
   },
   priceContainer: {
     flexDirection: 'row',
@@ -175,14 +177,17 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 36,
     fontWeight: 'bold',
+    fontFamily: 'Sora_700Bold',
   },
   period: {
     fontSize: 16,
     marginLeft: 4,
+    fontFamily: 'Sora_400Regular',
   },
   description: {
     fontSize: 16,
     lineHeight: 22,
+    fontFamily: 'Sora_400Regular',
   },
   featuresContainer: {
     marginBottom: 24,

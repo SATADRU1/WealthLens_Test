@@ -22,29 +22,29 @@ interface ThemeContextType {
 }
 
 const lightColors = {
-  primary: '#3399E6',
-  accent: '#40BFBF',
-  background: '#F0F8FF',
+  primary: '#2563EB', // Blue 600
+  accent: '#2563EB',
+  background: '#F8FAFC', // slate-50
   surface: '#FFFFFF',
-  text: '#1A1A1A',
-  textSecondary: '#666666',
-  border: '#E0E0E0',
-  success: '#4CAF50',
-  error: '#F44336',
-  warning: '#FF9800',
+  text: '#0F172A', // slate-900
+  textSecondary: '#475569', // slate-600
+  border: '#E2E8F0', // slate-200
+  success: '#22C55E',
+  error: '#EF4444',
+  warning: '#F59E0B',
 };
 
 const darkColors = {
-  primary: '#3399E6',
-  accent: '#40BFBF',
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  border: '#333333',
-  success: '#4CAF50',
-  error: '#F44336',
-  warning: '#FF9800',
+  primary: '#2563EB',
+  accent: '#2563EB',
+  background: '#0B1220', // deep dark
+  surface: '#111827', // gray-900
+  text: '#F8FAFC', // slate-50
+  textSecondary: '#94A3B8', // slate-400
+  border: '#1F2937', // gray-800
+  success: '#22C55E',
+  error: '#EF4444',
+  warning: '#F59E0B',
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

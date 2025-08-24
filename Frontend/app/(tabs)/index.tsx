@@ -1,21 +1,17 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, RefreshControl, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, RefreshControl, TouchableOpacity, Animated } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext';
 import { useData, useInvestments, usePortfolio } from '@/contexts/DataContext';
-import { useResponsive, getResponsiveFontSize, getResponsivePadding } from '@/hooks/useResponsive';
+import { useResponsive } from '@/hooks/useResponsive';
 import { Card } from '@/components/Card';
+import { Skeleton } from '@/components/Skeleton';
 import { Header } from '@/components/Header';
 import { RealTimeStatus } from '@/components/RealTimeStatus';
 import {
   TrendingUp,
-  TrendingDown,
-  DollarSign,
-  CreditCard,
-  Target,
-  PieChart,
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
@@ -27,8 +23,8 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
-  const { user } = useAuth();
-  const { isSmall, isTablet } = useResponsive();
+  // const { user } = useAuth();
+  const { isTablet } = useResponsive();
   const insets = useSafeAreaInsets();
 
   // Real-time data hooks
@@ -77,21 +73,40 @@ export default function DashboardScreen() {
     backgroundGradientFrom: colors.surface,
     backgroundGradientTo: colors.surface,
     decimalPlaces: 0,
-    color: (opacity = 1) => colors.primary,
-    labelColor: (opacity = 1) => colors.textSecondary,
+    color: () => colors.primary,
+    labelColor: () => colors.textSecondary,
     style: {
       borderRadius: 16,
     },
-    propsForDots: {
-      r: "0",
-    },
+    barPercentage: 0.6,
     propsForBackgroundLines: {
       strokeDasharray: "",
       stroke: colors.border,
       strokeWidth: 1,
     },
     formatYLabel: (value: any) => `₹${(parseInt(value) / 100000).toFixed(0)}L`,
-  };
+  } as const;
+
+  const spinAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isLoading) {
+      Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      spinAnim.stopAnimation(() => spinAnim.setValue(0));
+    }
+  }, [isLoading]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  });
 
   return (
     <View style={[styles.container, {
@@ -109,11 +124,13 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={refreshData} disabled={isLoading} style={styles.iconButton}>
-              <RefreshCw
-                size={20}
-                color={isLoading ? colors.textSecondary : colors.primary}
-                style={isLoading ? { transform: [{ rotate: '180deg' }] } : {}}
-              />
+              {isLoading ? (
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                  <RefreshCw size={20} color={colors.primary} />
+                </Animated.View>
+              ) : (
+                <RefreshCw size={20} color={colors.primary} />
+              )}
             </TouchableOpacity>
             {isRealTimeEnabled ? (
               <Wifi size={16} color={colors.success} style={styles.statusIcon} />
@@ -181,18 +198,27 @@ export default function DashboardScreen() {
               )}
             </View>
           </View>
-          <Text style={[styles.portfolioValue, { color: colors.text }]}>
-            {isLoading ? '₹--,---' : `₹${totalValue.toLocaleString()}`}
-          </Text>
-          <Text style={[styles.portfolioChange, {
-            color: totalGainLoss >= 0 ? colors.success : colors.error
-          }]}>
-            {isLoading ? 'Loading...' : `${totalGainLoss >= 0 ? '+' : ''}₹${Math.abs(totalGainLoss).toLocaleString()} (${totalGainLossPercent.toFixed(2)}%)`}
+          {isLoading ? (
+            <View style={{ marginTop: 4, width: '100%' }}>
+              <Skeleton width={160} height={28} borderRadius={8} style={{ marginBottom: 8 }} />
+              <Skeleton width={220} height={16} borderRadius={6} />
+            </View>
+          ) : (
+            <>
+              <Text style={[styles.portfolioValue, { color: colors.text }]}>
+                ₹{totalValue.toLocaleString()}
+              </Text>
+              <Text style={[styles.portfolioChange, {
+                color: totalGainLoss >= 0 ? colors.success : colors.error
+              }]}>
+            {isLoading ? 'Fetching latest...' : `${totalGainLoss >= 0 ? '+' : ''}₹${Math.abs(totalGainLoss).toLocaleString()} (${totalGainLossPercent.toFixed(2)}%)`}
           </Text>
           {isRealTimeEnabled && lastUpdated && !isLoading && (
             <Text style={[styles.lastUpdatedSmall, { color: colors.textSecondary }]}>
               Updated: {lastUpdated.toLocaleTimeString()}
             </Text>
+          )}
+            </>
           )}
           {!isRealTimeEnabled && (
             <Text style={[styles.offlineIndicator, { color: colors.textSecondary }]}>
@@ -249,19 +275,30 @@ export default function DashboardScreen() {
             Your portfolio value over the last 6 months.
           </Text>
           <View style={styles.chartContainer}>
-            <BarChart
-              data={chartData}
-              width={screenWidth - 64} // Account for padding
-              height={isTablet ? 280 : 220}
-              chartConfig={chartConfig}
-              style={styles.chart}
-              showValuesOnTopOfBars={false}
-              fromZero={false}
-              withInnerLines={true}
-              yAxisSuffix=""
-              yAxisLabel=""
-              yAxisInterval={1}
-            />
+            {isLoading ? (
+              <View style={{ width: screenWidth - 64 }}>
+                <Skeleton width={screenWidth - 64} height={20} borderRadius={8} style={{ marginBottom: 12 }} />
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} width={(screenWidth - 64) / 10} height={60 + i * 10} borderRadius={6} />
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <BarChart
+                data={chartData}
+                width={screenWidth - 64} // Account for padding
+                height={isTablet ? 280 : 220}
+                chartConfig={chartConfig}
+                style={styles.chart}
+                showValuesOnTopOfBars={false}
+                fromZero={false}
+                withInnerLines={true}
+                yAxisSuffix=""
+                yAxisLabel=""
+                yAxisInterval={1}
+              />
+            )}
           </View>
         </Card>
 
@@ -284,9 +321,33 @@ export default function DashboardScreen() {
           {/* Transaction List */}
           {isLoading ? (
             <View style={styles.loadingTransactions}>
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                Loading recent activity...
-              </Text>
+              {/* Skeleton rows */}
+              <View style={{ width: '100%', gap: 12 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <View style={{ height: 14, borderRadius: 6, backgroundColor: colors.text + '10', marginBottom: 6 }} />
+                    <View style={{ height: 10, borderRadius: 6, backgroundColor: colors.text + '10', width: '60%' }} />
+                  </View>
+                  <View style={{ flex: 1, marginHorizontal: 8 }}>
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: colors.text + '10' }} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: colors.text + '10' }} />
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <View style={{ height: 14, borderRadius: 6, backgroundColor: colors.text + '10', marginBottom: 6 }} />
+                    <View style={{ height: 10, borderRadius: 6, backgroundColor: colors.text + '10', width: '50%' }} />
+                  </View>
+                  <View style={{ flex: 1, marginHorizontal: 8 }}>
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: colors.text + '10' }} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: colors.text + '10' }} />
+                  </View>
+                </View>
+              </View>
             </View>
           ) : recentTransactions.length > 0 ? (
             recentTransactions.map((transaction, index) => (
@@ -482,35 +543,17 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statusIcon: {
-    marginLeft: 4,
-  },
-  errorButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 0, 0, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
   errorCard: {
     padding: 12,
     marginBottom: 16,
     borderRadius: 8,
+    borderWidth: 1,
   },
   errorMessage: {
     fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12,
     fontWeight: '500',
-    marginBottom: 4,
   },
   lastUpdated: {
     fontSize: 12,
@@ -521,11 +564,6 @@ const styles = StyleSheet.create({
   },
 
   // Enhanced styles for better UX
-  errorCard: {
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
   errorContent: {
     alignItems: 'center',
     padding: 8,
@@ -534,11 +572,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
-  },
-  errorMessage: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 12,
   },
   retryButton: {
     paddingHorizontal: 16,
@@ -553,7 +586,6 @@ const styles = StyleSheet.create({
   portfolioHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   loadingIcon: {
     marginRight: 4,

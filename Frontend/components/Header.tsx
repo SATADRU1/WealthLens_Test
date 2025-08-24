@@ -273,10 +273,12 @@ const createStyles = (colors: any, isTablet: boolean, isDesktop: boolean) => Sty
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 2,
+    fontFamily: 'Sora_700Bold',
   },
   subtitle: {
     fontSize: isTablet ? 16 : 14,
     color: colors.textSecondary,
+    fontFamily: 'Sora_400Regular',
   },
   profileButton: {
     padding: 8,

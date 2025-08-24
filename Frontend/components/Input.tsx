@@ -35,6 +35,7 @@ export function Input({ label, error, style, ...props }: InputProps) {
             color: colors.text,
             fontSize: responsiveFontSize * 0.9,
             marginBottom: isSmall ? 6 : 8,
+            fontFamily: 'Sora_600SemiBold',
           }
         ]}>{label}</Text>
       )}
@@ -50,6 +51,7 @@ export function Input({ label, error, style, ...props }: InputProps) {
             paddingVertical: responsivePadding * 0.75,
             borderRadius: responsiveRadius,
             minHeight: isSmall ? 44 : 48, // Better touch targets
+            fontFamily: 'Sora_400Regular',
           },
           style,
         ]}

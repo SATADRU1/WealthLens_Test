@@ -15,11 +15,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   useFrameworkReady();
 
-  const [interLoaded, interError] = useInter({
-    'Inter-Regular': Inter_400Regular,
-    'Inter-SemiBold': Inter_600SemiBold,
-    'Inter-Bold': Inter_700Bold,
-  });
+  const [interLoaded, interError] = useInter({});
 
   const [soraLoaded, soraError] = useSora({
     Sora_400Regular,
@@ -27,7 +23,7 @@ export default function RootLayout() {
     Sora_700Bold,
   });
 
-  const fontsLoaded = interLoaded && soraLoaded;
+  const fontsLoaded = soraLoaded;
   const fontError = interError || soraError;
 
   useEffect(() => {

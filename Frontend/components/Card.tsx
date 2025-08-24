@@ -30,6 +30,8 @@ export function Card({ children, style }: CardProps) {
         padding: responsivePadding,
         borderRadius: responsiveRadius,
         marginBottom: responsiveMargin,
+        borderWidth: 1,
+        borderColor: colors.border,
       },
       style
     ]}>

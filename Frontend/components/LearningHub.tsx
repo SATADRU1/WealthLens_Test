@@ -32,10 +32,12 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 8,
+    fontFamily: 'Sora_700Bold',
   },
   subHeader: {
     fontSize: 16,
     color: colors.textSecondary,
+    fontFamily: 'Sora_400Regular',
   },
 });
 
