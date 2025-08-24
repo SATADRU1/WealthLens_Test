@@ -9,7 +9,7 @@ const getLocalIP = (): string => {
   }
 
   // Default to the correct IP from backend configuration
-  return '192.168.0.198';
+  return '192.168.0.140';
 };
 
 export const API_CONFIG = {

@@ -32,6 +32,7 @@ import traceback
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from utils.test import query_index, query_stock
 
 load_dotenv()
 console = Console()
