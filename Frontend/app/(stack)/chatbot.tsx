@@ -457,7 +457,7 @@ export default function ChatbotScreen() {
             borderColor: colors.border,
             color: colors.text
           }]}
-          placeholder="I'm your SmartAssistant of your Wealth , Feel free to ask any type of queries..."
+          placeholder="Ask your queries..."
           placeholderTextColor={colors.textSecondary}
           value={inputText}
           onChangeText={setInputText}

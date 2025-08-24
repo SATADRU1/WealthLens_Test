@@ -314,7 +314,7 @@ export default function AIFinanceScreen() {
               style={[styles.textInput, { color: colors.text }]}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="I'm your SmartAssistant of your Wealth , Feel free to ask any type of queries..."
+              placeholder="Ask your queries..."
               placeholderTextColor={colors.textSecondary}
               multiline
               maxLength={500}
