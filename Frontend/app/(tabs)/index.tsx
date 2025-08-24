@@ -100,7 +100,7 @@ export default function DashboardScreen() {
       paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom + 70, // Account for tab bar
     }]}>
       <Header
-        title="My Investments"
+        title="My Dashboard"
         rightComponent={
           <View style={styles.headerRight}>
             {error && (
