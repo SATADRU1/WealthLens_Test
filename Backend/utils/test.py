@@ -11,7 +11,7 @@ from langchain import hub
 # -------------------
 # CONFIG
 # -------------------
-PDF_FOLDER = "../data"
+PDF_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 INDEX_FOLDER = "faiss_index_pdfs"
 EMBED_MODEL = "all-minilm"
 LLM_MODEL = "llama3.2"

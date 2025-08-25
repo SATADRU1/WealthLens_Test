@@ -33,8 +33,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from utils.test import query_index, query_stock
+import requests
+import json
 
 load_dotenv()
+
+# Load API keys from environment
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 console = Console()
 
 # --- Initialize Tools ---
@@ -139,14 +147,52 @@ def strip_markdown(text: str) -> str:
 
     return text.strip()
 
-# --- Financial Query Handler ---
+# --- Enhanced Query Classification ---
+def classify_query_type(query: str) -> str:
+    """
+    Classify the query type to determine which function to use.
+    Returns: 'stock', 'financial', 'general', or 'small_talk'
+    """
+    query_lower = query.lower()
+
+    # Stock-specific keywords for query_stock function
+    stock_keywords = [
+        'stock price', 'stock data', 'stock history', 'stock performance',
+        'share price', 'ticker', 'stock symbol', 'stock chart',
+        'stock analysis', 'stock trend', 'stock movement'
+    ]
+
+    # Financial keywords for existing financial tools
+    financial_keywords = [
+        'market index', 'sensex', 'nifty', 'market indices',
+        'crypto', 'bitcoin', 'ethereum', 'cryptocurrency',
+        'portfolio', 'investment', 'trading', 'market news'
+    ]
+
+    # Check for stock queries first (more specific)
+    if any(keyword in query_lower for keyword in stock_keywords):
+        return 'stock'
+
+    # Check for general financial queries
+    if any(keyword in query_lower for keyword in financial_keywords):
+        return 'financial'
+
+    # Check for small talk
+    small_talk_keywords = ['hello', 'hi', 'how are you', 'good morning', 'good evening', 'thanks', 'thank you']
+    if any(keyword in query_lower for keyword in small_talk_keywords):
+        return 'small_talk'
+
+    # Default to general knowledge query
+    return 'general'
+
+# --- Enhanced Financial Query Handler ---
 def handle_financial_query(query: str) -> Optional[str]:
     """
     Handle financial queries like stock prices, market data, etc.
     Returns formatted response if it's a financial query, None otherwise.
     """
     query_lower = query.lower()
-    
+
     # Check for stock price queries
     stock_keywords = ['stock price', 'stock price of', 'price of', 'share price', 'current price', 'market price']
     if any(keyword in query_lower for keyword in stock_keywords):
@@ -272,6 +318,245 @@ def handle_financial_query(query: str) -> Optional[str]:
     return None
 
 
+# --- Stock Data Formatting Function ---
+def format_stock_data_response(symbol: str, raw_data: str) -> str:
+    """
+    Format raw stock data into a user-friendly response
+    """
+    try:
+        # Parse the raw data to extract meaningful information
+        lines = raw_data.strip().split('\n')
+
+        # Find the data lines (skip header)
+        data_lines = []
+        for line in lines:
+            if line.strip() and not line.startswith('Date') and not line.startswith('Open'):
+                # Clean up the line and split by whitespace
+                parts = line.split()
+                if len(parts) >= 6:  # Ensure we have enough data
+                    data_lines.append(parts)
+
+        if not data_lines:
+            return f"📈 **Stock Data for {symbol}**\n\n❌ Unable to parse stock data."
+
+        # Get the most recent data (last line)
+        latest = data_lines[-1]
+
+        # Extract values (Date, Open, High, Low, Close, Volume)
+        date = latest[0]
+        open_price = float(latest[1])
+        high_price = float(latest[2])
+        low_price = float(latest[3])
+        close_price = float(latest[4])
+        volume = int(float(latest[5]))
+
+        # Calculate change if we have previous day data
+        change = 0
+        change_percent = 0
+        if len(data_lines) > 1:
+            prev_close = float(data_lines[-2][4])
+            change = close_price - prev_close
+            change_percent = (change / prev_close) * 100
+
+        # Format the response
+        response = f"📈 **Stock Data for {symbol}**\n\n"
+        response += f"**Current Price:** ${close_price:.2f}\n"
+
+        if change != 0:
+            change_emoji = "🟢" if change > 0 else "🔴"
+            change_sign = "+" if change > 0 else ""
+            response += f"**Change:** {change_emoji} {change_sign}${change:.2f} ({change_sign}{change_percent:.2f}%)\n"
+
+        response += f"**Day's Range:** ${low_price:.2f} - ${high_price:.2f}\n"
+        response += f"**Opening Price:** ${open_price:.2f}\n"
+        response += f"**Volume:** {volume:,}\n"
+        response += f"**Date:** {date}\n\n"
+
+        # Add recent trend if we have multiple days
+        if len(data_lines) > 1:
+            response += "**Recent 5-Day Trend:**\n"
+            for day_data in data_lines[-5:]:
+                day_date = day_data[0]
+                day_close = float(day_data[4])
+                response += f"• {day_date}: ${day_close:.2f}\n"
+
+        response += f"\n*Data retrieved using yfinance*"
+        return response
+
+    except Exception as e:
+        print(colored(f"❌ Error formatting stock data: {e}", "red"))
+        # Fallback to original format if parsing fails
+        return f"📈 **Stock Data for {symbol}**\n\n```\n{raw_data}\n```\n\n*Data retrieved using yfinance*"
+
+
+# --- Enhanced Stock Query Handler using query_stock ---
+def handle_stock_query(query: str) -> Optional[str]:
+    """
+    Handle stock queries using the query_stock function from utils.test.py
+    """
+    try:
+        query_lower = query.lower()
+
+        # Extract stock symbol from query with improved logic
+        words = query.split()
+        potential_symbols = []
+
+        # Common financial keywords to skip
+        skip_words = {'stock', 'price', 'share', 'current', 'market', 'data', 'info', 'information', 'show', 'get', 'tell', 'what', 'is', 'the', 'of', 'for', 'me', 'about'}
+
+        # Look for stock symbols, skipping common keywords
+        for i, word in enumerate(words):
+            word_clean = word.upper().replace(',', '').replace('.', '').replace('?', '')
+
+            # Skip common financial keywords
+            if word_clean.lower() in skip_words:
+                continue
+
+            # Check if it looks like a stock symbol (2-5 characters, all letters)
+            if 2 <= len(word_clean) <= 5 and word_clean.isalpha():
+                # Prioritize symbols that come after keywords like "of", "for"
+                if i > 0 and words[i-1].lower() in ['of', 'for', 'about']:
+                    potential_symbols.insert(0, word_clean)  # Put at front
+                else:
+                    potential_symbols.append(word_clean)
+
+        # If no symbols found, try regex pattern matching
+        if not potential_symbols:
+            import re
+            # Look for 2-5 letter sequences that aren't common words
+            symbol_pattern = r'\b([A-Z]{2,5})\b'
+            matches = re.findall(symbol_pattern, query.upper())
+            for match in matches:
+                if match.lower() not in skip_words:
+                    potential_symbols.append(match)
+
+        if potential_symbols:
+            symbol = potential_symbols[0]  # Use the first found symbol
+            print(colored(f"🔍 Querying stock data for: {symbol}", "blue"))
+
+            # Try enhanced API first, then fallback to query_stock
+            enhanced_data = get_enhanced_stock_data(symbol)
+            if enhanced_data:
+                return enhanced_data
+
+            # Fallback to query_stock function from utils.test.py
+            stock_data = query_stock(symbol, period="5d")  # Use 5 days for better readability
+
+            if "No data found" in stock_data:
+                return f"❌ No stock data found for '{symbol}'. Please check if the symbol is correct."
+
+            # Parse and format the stock data for better readability
+            formatted_response = format_stock_data_response(symbol, stock_data)
+            return formatted_response
+        else:
+            return "❌ Could not identify a stock symbol in your query. Please specify a stock symbol (e.g., AAPL, TSLA, MSFT)."
+
+    except Exception as e:
+        print(colored(f"❌ Error in stock query: {e}", "red"))
+        return f"❌ Error retrieving stock data: {str(e)}"
+
+
+# --- Enhanced General Query Handler using query_index ---
+def handle_general_query(query: str) -> Optional[str]:
+    """
+    Handle general queries using the query_index function from utils.test.py
+    """
+    try:
+        print(colored(f"🔍 Querying knowledge base for: {query}", "blue"))
+
+        # Use query_index function from utils.test.py
+        answer = query_index(query)
+
+        if answer:
+            response = f"📚 **Knowledge Base Response**\n\n{answer}\n\n"
+            response += "*Information retrieved from PDF knowledge base*"
+
+            # Try to enhance with web research if available
+            web_info = get_web_research(query)
+            if web_info:
+                response += f"\n\n{web_info}"
+
+            return response
+        else:
+            # If no knowledge base answer, try web research
+            web_info = get_web_research(query)
+            if web_info:
+                return web_info
+            return None
+
+    except Exception as e:
+        print(colored(f"❌ Error in general query: {e}", "red"))
+        return f"❌ Error querying knowledge base: {str(e)}"
+
+
+# --- Enhanced API Integration for Advanced Cases ---
+def get_enhanced_stock_data(symbol: str) -> Optional[str]:
+    """
+    Get enhanced stock data using Alpha Vantage API for advanced cases
+    """
+    if not ALPHA_VANTAGE_API_KEY:
+        return None
+
+    try:
+        url = f"https://www.alphavantage.co/query"
+        params = {
+            'function': 'GLOBAL_QUOTE',
+            'symbol': symbol,
+            'apikey': ALPHA_VANTAGE_API_KEY
+        }
+
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        if 'Global Quote' in data:
+            quote = data['Global Quote']
+            price = quote.get('05. price', 'N/A')
+            change = quote.get('09. change', 'N/A')
+            change_percent = quote.get('10. change percent', 'N/A')
+
+            return f"📈 **{symbol} - Enhanced Data**\n\n" \
+                   f"**Current Price:** ${price}\n" \
+                   f"**Change:** {change} ({change_percent})\n" \
+                   f"*Data from Alpha Vantage API*"
+
+    except Exception as e:
+        print(colored(f"❌ Alpha Vantage API error: {e}", "red"))
+
+    return None
+
+
+def get_web_research(query: str) -> Optional[str]:
+    """
+    Get web research using Tavily API for real-time information
+    """
+    if not TAVILY_API_KEY:
+        return None
+
+    try:
+        url = "https://api.tavily.com/search"
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        data = {
+            'api_key': TAVILY_API_KEY,
+            'query': query,
+            'search_depth': 'basic',
+            'include_answer': True,
+            'max_results': 3
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        result = response.json()
+
+        if 'answer' in result and result['answer']:
+            return f"🌐 **Web Research Results**\n\n{result['answer']}\n\n*Information from Tavily web search*"
+
+    except Exception as e:
+        print(colored(f"❌ Tavily API error: {e}", "red"))
+
+    return None
+
+
 # --- Core Processing Function ---
 def process_query_flow(
     query: str,
@@ -280,39 +565,37 @@ def process_query_flow(
     stream_callback: Optional[Callable[[str], None]] = None
 ) -> Dict[str, Any]:
     print(colored(f"\nProcessing Query: '{query}' (Deep Search: {deep_search})", "white", attrs=["bold"]))
+
+    # === 0. Enhanced Query Classification ===
+    print(colored("Classifying query type...", "cyan"))
+    query_type = classify_query_type(query)
+    print(colored(f"Query classified as: {query_type}", "magenta"))
+
+    # === 1. Handle Stock Queries ===
+    if query_type == 'stock':
+        print(colored("Stock query detected, using query_stock function...", "green"))
+        stock_response = handle_stock_query(query)
+        if stock_response:
+            return {"answer": stock_response, "deep_research_log": ""}
+
+    # === 2. Handle Financial Queries (existing system) ===
+    if query_type == 'financial':
+        print(colored("Financial query detected, using existing financial tools...", "green"))
+        financial_response = handle_financial_query(query)
+        if financial_response:
+            return {"answer": financial_response, "deep_research_log": ""}
+
+    # === 3. Handle General Queries ===
+    if query_type == 'general':
+        print(colored("General query detected, using query_index function...", "green"))
+        general_response = handle_general_query(query)
+        if general_response:
+            return {"answer": general_response, "deep_research_log": ""}
     
-    # === 0. Financial Query Check ===
-    print(colored("Checking if this is a financial query...", "cyan"))
-    financial_response = handle_financial_query(query)
-    if financial_response:
-        print(colored("Financial query detected, returning direct response.", "green"))
-        return {"answer": financial_response, "deep_research_log": ""}
-    
-    final_answer = ""
-    rag_context = ""
-    web_research_context = ""
-    research_debug_log = ""
-
-    # === 1. Small Talk Check (Using BooleanOutputParser) ===
-    try:
-        print(colored("Checking for small talk...", "cyan"))
-        # Use Langchain compatible LLM
-        small_talk_llm = main_llm_langchain
-        # Updated prompt for BooleanOutputParser (often works better with true/false but tries yes/no)
-        small_talk_prompt = PromptTemplate(
-            template="Is the following a simple greeting, pleasantry, or conversational filler (small talk)? Answer ONLY with 'YES' or 'NO'.\n\nQuestion: {question}",
-            input_variables=["question"]
-        )
-        # Use BooleanOutputParser
-        small_talk_parser = BooleanOutputParser()
-        small_talk_chain = small_talk_prompt | small_talk_llm | small_talk_parser
-
-        # Invoke the chain
-        is_small_talk = small_talk_chain.invoke({"question": query})
-        print(colored(f"Small talk check result: {is_small_talk}", "magenta"))
-
-        if is_small_talk: # BooleanOutputParser returns True or False
-            print(colored("Query identified as small talk.", "yellow"))
+    # === 4. Handle Small Talk ===
+    if query_type == 'small_talk':
+        try:
+            print(colored("Small talk detected, using conversational agent...", "yellow"))
             # Use Agno compatible LLM for the Agno Agent
             conv_agent = Agent(
                 model=main_llm_agno,
@@ -322,14 +605,17 @@ def process_query_flow(
             history = memory.load_memory_variables({})["chat_history"]
             response = conv_agent.run(f"Respond conversationally to: {query}", chat_history=history)
             return {"answer": response.content, "deep_research_log": ""}
-    except Exception as e:
-        # Catch potential OutputParserException here too
-        print(colored(f"Error during small talk check: {e}", "red"))
-        if "Invalid" in str(e) or "OutputParserException" in str(e):
-             print(colored("Attempting to proceed assuming it's not small talk...", "yellow"))
-        else:
-             traceback.print_exc() # Print full trace for unexpected errors
-        # Proceed assuming it's not small talk on error
+        except Exception as e:
+            print(colored(f"Error during small talk handling: {e}", "red"))
+            return {"answer": "Hello! How can I help you today?", "deep_research_log": ""}
+
+    # === 5. Fallback to Advanced Research (for complex queries) ===
+    print(colored("Using advanced research flow for complex query...", "cyan"))
+
+    final_answer = ""
+    rag_context = ""
+    web_research_context = ""
+    research_debug_log = ""
 
 
     # === 2. RAG Retrieval ===
