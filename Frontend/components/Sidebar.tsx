@@ -17,7 +17,8 @@ import {
   User,
   HelpCircle,
   ArrowUpDown,
-  BookOpen
+  BookOpen,
+  Info
 } from 'lucide-react-native';
 
 interface SidebarProps {
@@ -90,6 +91,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       title: 'Learning Hub',
       icon: BookOpen,
       route: '/(stack)/learning-hub',
+    },
+    {
+      id: 'about',
+      title: 'About Us',
+      icon: Info,
+      route: '/(stack)/about',
     },
   ];
 
